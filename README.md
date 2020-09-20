@@ -81,6 +81,8 @@ docker exec tailscaled tailscale up
 docker exec tailscaled tailscale status
 docker stop tailscaled
 docker rm tailscaled
+
+docker build -t fastai docker
 ```
 
 ### Remote setup
@@ -92,27 +94,28 @@ rsync -avrz --exclude=.venv/ work $REMOTE_IP:
 set -x DOCKER_HOST ssh://smurf@$REMOTE_IP
 set -x REMOTE_HOME (ssh $REMOTE_IP pwd)
 
-docker build -t tailscale:1.0.5 https://github.com/tailscale/tailscale.git#v1.0.5
 docker run -d --name=tailscaled --hostname=compute \
         -v $REMOTE_HOME/work/tailscale/conf:/var/lib/tailscale \
         -v /dev/net/tun:/dev/net/tun --privileged \
-        tailscale:1.0.5 tailscaled
-
-docker build -t fastai docker
+        docker.pkg.github.com/hsm/docker-gpu-machine/tailscale:1.0.5 tailscaled
 ```
 
 GPU:
 ```
 docker run -d --gpus all --name=fastai --network=container:tailscaled \
         --shm-size 24g --ulimit memlock=-1 \
-        -v $REMOTE_HOME/work/projects:/home/smurf/projects fastai
+        -v $REMOTE_HOME/work/projects:/home/smurf/projects \
+        -v $REMOTE_HOME/.ssh/authorized_keys:/home/smurf/.ssh/authorized_keys \
+        docker.pkg.github.com/hsm/docker-gpu-machine/fastai:latest
 ```
 
 No GPU:
 ```
 docker run -d --name=fastai  --network=container:tailscaled \
         --shm-size 24g --ulimit memlock=-1 \
-        -v $REMOTE_HOME/work/projects:/home/smurf/projects fastai
+        -v $REMOTE_HOME/work/projects:/home/smurf/projects \
+        -v $REMOTE_HOME/.ssh/authorized_keys:/home/smurf/.ssh/authorized_keys \
+        docker.pkg.github.com/hsm/docker-gpu-machine/fastai:latest
 ```
 
 Local:
@@ -120,11 +123,13 @@ Local:
 docker run -d --name=tailscaled --hostname=compute \
         -v (pwd)/work/tailscale/conf:/var/lib/tailscale \
         -v /dev/net/tun:/dev/net/tun --privileged \
-        tailscale:1.0.5 tailscaled
+        docker.pkg.github.com/hsm/docker-gpu-machine/tailscale:1.0.5 tailscaled
 
 docker run -d --name=fastai --network=container:tailscaled \
         --shm-size 12g --ulimit memlock=-1 \
-        -v (pwd)/work/projects:/home/smurf/projects fastai
+        -v (pwd)/work/projects:/home/smurf/projects \
+        -v ~/.ssh/id_rsa.pub:/home/smurf/.ssh/authorized_keys:ro \
+        docker.pkg.github.com/hsm/docker-gpu-machine/fastai:latest
 ```
 
 Conda:

@@ -9,8 +9,6 @@ RUN mkdir /var/run/sshd \
 && useradd --create-home --shell /usr/bin/fish --uid 1000 smurf \
 && echo 'smurf ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers \
 && echo 'fs.inotify.max_user_watches=524288' >> /etc/sysctl.conf
-COPY authorized_keys /home/smurf/.ssh/authorized_keys
-RUN chown -R smurf:smurf ~smurf/.ssh
 
 USER smurf
 SHELL ["fish", "--command"]
