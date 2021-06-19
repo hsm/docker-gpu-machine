@@ -72,17 +72,23 @@ To delete: `gcloud compute instances delete compute --zone=europe-west4-c --dele
 ### First time setup (locally)
 
 ```
-docker build -t tailscale:1.0.5 https://github.com/tailscale/tailscale.git#v1.0.5
+cat GH_TOKEN.txt | docker login https://docker.pkg.github.com -u hsm --password-stdin
+```
+
+```
+docker build -t docker.pkg.github.com/hsm/docker-gpu-machine/tailscale:1.8.7 https://github.com/tailscale/tailscale.git#v1.8.7
 docker run -d --name=tailscaled --hostname=compute \
         -v (pwd)/work/tailscale/conf:/var/lib/tailscale \
         -v /dev/net/tun:/dev/net/tun --privileged \
-        tailscale:1.0.5 tailscaled
+        docker.pkg.github.com/hsm/docker-gpu-machine/tailscale:1.8.7 tailscaled
 docker exec tailscaled tailscale up
 docker exec tailscaled tailscale status
 docker stop tailscaled
 docker rm tailscaled
 
-docker build -t fastai docker
+docker push docker.pkg.github.com/hsm/docker-gpu-machine/tailscale:1.8.7
+docker build -t docker.pkg.github.com/hsm/docker-gpu-machine/fastai:latest docker
+docker push docker.pkg.github.com/hsm/docker-gpu-machine/fastai:latest
 ```
 
 ### Remote setup
@@ -97,7 +103,7 @@ set -x REMOTE_HOME (ssh $REMOTE_IP pwd)
 docker run -d --name=tailscaled --hostname=compute \
         -v $REMOTE_HOME/work/tailscale/conf:/var/lib/tailscale \
         -v /dev/net/tun:/dev/net/tun --privileged \
-        docker.pkg.github.com/hsm/docker-gpu-machine/tailscale:1.0.5 tailscaled
+        docker.pkg.github.com/hsm/docker-gpu-machine/tailscale:1.8.7 tailscaled
 ```
 
 GPU:
@@ -133,13 +139,29 @@ docker run -d --name=fastai --network=container:tailscaled \
 ```
 
 Conda:
+
+Book:
+
 ```
-conda create -n fastai python=3.8
+conda create -n fastbook python=3.9
+conda activate fastbook
+```
+
+```
+mamba install -c fastai -c fastchan fastbook
+mamba install jupyter notebook
+jupyter notebook --ip=0.0.0.0 --no-browser
+```
+
+FastAI:
+
+```
+conda create -n fastai python=3.9
 conda activate fastai
 ```
 
 ```
-conda install -c fastai -c pytorch fastai
-conda install jupyter notebook
+mamba install -c fastai -c fastchan fastai
+mamba install jupyter notebook
 jupyter notebook --ip=0.0.0.0 --no-browser
 ```

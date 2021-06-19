@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.0-base-ubuntu20.04
+FROM nvidia/cuda:11.3.1-base-ubuntu20.04
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
 && apt-get install -y curl python3-venv fish fzf git sudo tmux vim openssh-server htop \
@@ -16,7 +16,7 @@ ENV SHELL /usr/bin/fish
 ENV LANG=C.UTF-8 LANGUAGE=C.UTF-8 LC_ALL=C.UTF-8
 RUN curl https://git.io/fisher --create-dirs -sLo ~/.config/fish/functions/fisher.fish \
 && source ~/.config/fish/functions/fisher.fish \
-&& fisher add jethrokuan/fzf
+&& fisher install jethrokuan/fzf
 COPY *.fish /home/smurf/.config/fish/conf.d/
 
 RUN curl https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -Lo ~/Miniconda3-latest-Linux-x86_64.sh \
@@ -24,6 +24,7 @@ RUN curl https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -
 && ~/miniconda3/bin/conda init fish \
 && source ~/.config/fish/config.fish \
 && conda update -y conda \
+&& conda install mamba -n base -c conda-forge \
 && conda config --set auto_activate_base false \
 && rm ~/Miniconda3-latest-Linux-x86_64.sh
 
